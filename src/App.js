@@ -5,16 +5,30 @@ import confetti from 'canvas-confetti';
 
 const width = 10;
 const bombsAmount = 20;
-let score = 0
-let losses = 0
+const PORT = 5050
 
 function App() {
   const [squares, setSquares] = useState([]);
   const [isGameOver, setIsGameOver] = useState(false);
   const [flags, setFlags] = useState(0);
+  const [wins, setWins] = useState(0);
+  const [losses, setLosses] = useState(0);
 
   useEffect(() => {
     createBoard();
+
+    fetch('http://localhost:5050/api/scores')
+      .then(res => {
+        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        setWins(data.wins);
+        setLosses(data.losses);
+      })
+      .catch(err => {
+        console.error('Error fetching scores:', err);
+      });
   }, []);
 
   const createBoard = () => {
@@ -36,25 +50,6 @@ function App() {
         content: ''
       };
     });
-
-    // calculate adjacent bombs
-    // buggy logic for counting bomb neighbors
-    // for (let i = 0; i < newSquares.length; i++) {
-    //   const isLeftEdge = i % width === 0;
-    //   const isRightEdge = i % width === width - 1;
-    //   let total = 0;
-    //   if (newSquares[i].type === 'valid') {
-    //     if (i > 0 && !isLeftEdge && newSquares[i - 1].type === 'bomb') total++;
-    //     if (i > 9 && !isRightEdge && newSquares[i + 1 - width].type === 'bomb') total++;
-    //     if (i > 10 && newSquares[i - width].type === 'bomb') total++;
-    //     if (i > 11 && !isLeftEdge && newSquares[i - 1 - width].type === 'bomb') total++;
-    //     if (i < 98 && !isRightEdge && newSquares[i + 1].type === 'bomb') total++;
-    //     if (i < 90 && !isLeftEdge && newSquares[i - 1 + width].type === 'bomb') total++;
-    //     if (i < 88 && !isRightEdge && newSquares[i + 1 + width].type === 'bomb') total++;
-    //     if (i < 89 && newSquares[i + width].type === 'bomb') total++;
-    //   }
-    //   newSquares[i].data = total;
-    // }
     const directions = [
       -1, 1, -width, width,
       -1 - width, 1 - width,
@@ -102,12 +97,28 @@ function App() {
       square.content = '💣';
       setIsGameOver(true);
       revealBombs(updated);
-      losses ++
     } else {
       square.isChecked = true;
       square.content = square.data !== 0 ? square.data : '';
       setSquares(updated);
       if (square.data === 0) checkNeighbors(id, updated);
+    }
+  };
+
+  const updateScore = async (type) => {
+    try {
+      await fetch(`http://localhost:${PORT}/api/scores`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [type]: true }),
+      });
+
+      const res = await fetch(`http://localhost:${PORT}/api/scores`);
+      const data = await res.json();
+      setWins(data.wins);
+      setLosses(data.losses);
+    } catch (err) {
+      console.error('Error updating score:', err);
     }
   };
 
@@ -160,6 +171,7 @@ function App() {
       }
     });
     setIsGameOver(true);
+    updateScore('loss');
     setSquares([...board]);
     alert('You Lost!');
   };
@@ -170,10 +182,10 @@ function App() {
       if (square.isFlagged && square.type === 'bomb') match++;
     });
     if (match === bombsAmount) {
-      alert('🎉 You Win!');
-      confetti()
+      confetti();
       setIsGameOver(true);
-      score ++
+      updateScore('win');
+      alert('🎉 You Win!');
     }
   };
 
@@ -199,7 +211,7 @@ function App() {
         <button className="btn btn-success px-4 py-2" onClick={createBoard}>
           Play Again
         </button>
-        <h2>Score: {score} Loses: {losses}</h2>
+        <h2>Wins: {wins} | Losses: {losses}</h2>
       </div>
     </div>
   );

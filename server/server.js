@@ -1,27 +1,43 @@
 const express = require('express');
 const fs = require('fs');
+const path = require('path');
 const cors = require('cors');
+
 const app = express();
+const PORT = 5050;
 
-const PORT = 5000;
-const SCORE_FILE = './scores.json';
+// ✅ Always use absolute path
+const SCORE_FILE = path.join(__dirname, 'scores.json');
 
+// ✅ Middleware
 app.use(cors());
 app.use(express.json());
 
-// Read current scores
+// ✅ GET endpoint: safely read file
 app.get('/api/scores', (req, res) => {
-  const data = fs.readFileSync(SCORE_FILE);
-  res.json(JSON.parse(data));
+  try {
+    const data = fs.readFileSync(SCORE_FILE, 'utf-8');
+    console.log('Serving scores:', data);
+    res.status(200).json(JSON.parse(data));
+  } catch (err) {
+    console.error('🔥 READ ERROR:', err);
+    res.status(500).json({ error: 'Could not read scores.json' });
+  }
 });
 
-// Update score (expects { win: true } or { loss: true })
+// ✅ POST endpoint: update win/loss count
 app.post('/api/scores', (req, res) => {
-  const scores = JSON.parse(fs.readFileSync(SCORE_FILE));
-  if (req.body.win) scores.wins += 1;
-  if (req.body.loss) scores.losses += 1;
-  fs.writeFileSync(SCORE_FILE, JSON.stringify(scores));
-  res.json(scores);
+  try {
+    const scores = JSON.parse(fs.readFileSync(SCORE_FILE, 'utf-8'));
+    if (req.body.win) scores.wins += 1;
+    if (req.body.loss) scores.losses += 1;
+    fs.writeFileSync(SCORE_FILE, JSON.stringify(scores, null, 2));
+    console.log('Updated scores:', scores);
+    res.status(200).json(scores);
+  } catch (err) {
+    console.error('🔥 WRITE ERROR:', err);
+    res.status(500).json({ error: 'Could not update scores.json' });
+  }
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
