@@ -1,3 +1,47 @@
+# MindSweeper
+MindSweeper is a web-based game application inspired by the classic **Minesweeper**.  
+It challenges players to uncover tiles while avoiding hidden mines. The project is built with modern web technologies, combining a sleek frontend with a simple backend for score tracking.
+---
+## Features
+- 🎮 Interactive gameplay with a clean and responsive UI  
+- 📊 Tracks scores and player progress  
+- 💾 Persistent data storage for high scores  
+- 📱 Optimized for both desktop and mobile devices  
+---
+## Installation
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/mindsweeper.git
+   ```
+2. **Navigate to the project directory**
+   ```bash
+   cd mindsweeper
+   ```
+3. **Install dependencies**
+   ```bash
+   npm install
+   ```
+---
+## Usage
+1. **Start the development server**
+   ```bash
+   npm start
+   ```
+2. **Open your browser and navigate to**
+   ```
+   http://localhost:3000
+   ```
+---
+## Technologies Used
+- **Frontend**: React, CSS  
+- **Backend**: Node.js, Express  
+- **Package Manager**: npm  
+---
+## Future Improvements
+- Add difficulty levels (easy, medium, hard)  
+- Implement user authentication for personalized score tracking  
+- Enhance animations and UI effects
+  
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
